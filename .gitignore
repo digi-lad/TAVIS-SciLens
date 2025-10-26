@@ -47,5 +47,8 @@ Thumbs.db
 static/last_captured.jpg
 static/last_captured_debug.jpg
 
+# But include audio files needed for the app
+!static/sounds/*.mp3
+
 # Logs
 *.log
