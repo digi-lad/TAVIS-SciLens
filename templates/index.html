@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAVIS.SciLens</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main id="app" role="main">
+        <!-- Initial State: Language Selection -->
+        <div id="language-selection" class="screen active" role="region">
+            <h1 id="language-title">Chọn ngôn ngữ / Choose Language</h1>
+            <div class="language-buttons">
+                <button id="lang-vi" class="language-btn" aria-label="Tiếng Việt">
+                    <span class="flag">🇻🇳</span>
+                    <span class="lang-name">Tiếng Việt</span>
+                </button>
+                <button id="lang-en" class="language-btn" aria-label="English">
+                    <span class="flag">🇺🇸</span>
+                    <span class="lang-name">English</span>
+                </button>
+                <button id="lang-zh" class="language-btn" aria-label="中文">
+                    <span class="flag">🇨🇳</span>
+                    <span class="lang-name">中文</span>
+                </button>
+                <button id="lang-hi" class="language-btn" aria-label="हिन्दी">
+                    <span class="flag">🇮🇳</span>
+                    <span class="lang-name">हिन्दी</span>
+                </button>
+                <button id="lang-es" class="language-btn" aria-label="Español">
+                    <span class="flag">🇪🇸</span>
+                    <span class="lang-name">Español</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- TalkBack Question Screen -->
+        <div id="talkback-question" class="screen" role="region">
+            <h1 id="talkback-title">Bạn có dùng TalkBack?</h1>
+            <div class="talkback-buttons">
+                <button id="talkback-yes" class="talkback-btn yes-btn" aria-label="Có, tôi dùng TalkBack">
+                    <span class="talkback-answer">CÓ</span>
+                </button>
+                <button id="talkback-no" class="talkback-btn no-btn" aria-label="Không, tôi không dùng TalkBack">
+                    <span class="talkback-answer">KHÔNG</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Initial State: Tap to Capture -->
+        <div id="initial-state" class="screen tap-screen" role="region" aria-labelledby="initial-title">
+            <h1 id="initial-title" class="tap-text">CHẠM ĐỂ CHỤP ẢNH</h1>
+        </div>
+
+        <!-- Camera Preview State -->
+        <div id="camera-state" class="screen" role="region" aria-label="Giao diện camera" aria-live="polite">
+            <video id="video-preview" autoplay playsinline aria-label="Xem trước camera"></video>
+            <div id="marker-indicator" class="marker-found-indicator" aria-hidden="true">✓</div>
+            <div id="status-text" class="status-text" role="status" aria-live="polite"></div>
+        </div>
+
+        <!-- Processing State -->
+        <div id="processing-state" class="screen" role="region" aria-label="Đang xử lý" aria-live="assertive">
+            <div class="processing-content">
+                <h2>ĐANG XỬ LÝ ẢNH</h2>
+                <button id="processing-cancel-btn" class="large-button secondary" aria-label="Hủy bỏ">
+                    HỦY BỎ
+                </button>
+            </div>
+        </div>
+
+        <!-- Results State -->
+        <div id="results-state" class="screen" role="region" aria-label="Kết quả mô tả khoa học">
+            <div class="results-header">
+                <h2>MÔ TẢ KHOA HỌC</h2>
+            </div>
+            <div id="results-content" role="article" aria-label="Nội dung mô tả khoa học">
+                <!-- Sentences will be inserted here -->
+            </div>
+            <button id="try-again-btn" class="large-button secondary" aria-label="Thử lại">
+                CHỤP ẢNH KHÁC
+            </button>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="screen" role="alert">
+            <div class="error-content">
+                <h2>LỖI</h2>
+                <p id="error-message"></p>
+                <button id="error-retry-btn" class="large-button" aria-label="Thử lại">
+                    THỬ LẠI
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Hidden audio elements -->
+    <audio id="beep-sound" preload="auto" aria-hidden="true">
+        <source src="{{ url_for('static', filename='sounds/beep.mp3') }}" type="audio/mpeg">
+    </audio>
+    <audio id="processing-sound" preload="auto" aria-hidden="true">
+        <source src="{{ url_for('static', filename='sounds/processing.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <!-- Main JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+

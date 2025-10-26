@@ -1,0 +1,460 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #000000;
+    color: #FFD700;
+    font-size: 32px;
+    line-height: 1.5;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+/* Screen Management */
+.screen {
+    display: none;
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.screen.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Language Selection Screen */
+#language-selection {
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+}
+
+#language-title {
+    font-size: 48px;
+    text-align: center;
+    margin-bottom: 60px;
+    color: #FFD700;
+}
+
+.language-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.language-btn {
+    background-color: #000000;
+    color: #FFD700;
+    border: 4px solid #FFD700;
+    border-radius: 20px;
+    padding: 40px;
+    font-size: 48px;
+    font-weight: bold;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    min-height: 150px;
+}
+
+.language-btn:hover, .language-btn:focus {
+    background-color: #1a1a1a;
+    transform: scale(1.02);
+    outline: 4px solid #FFD700;
+}
+
+.language-btn:active {
+    transform: scale(0.98);
+}
+
+.flag {
+    font-size: 72px;
+}
+
+.lang-name {
+    flex: 1;
+    text-align: center;
+}
+
+/* TalkBack Question Screen */
+#talkback-question {
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+}
+
+#talkback-title {
+    font-size: 56px;
+    text-align: center;
+    margin-bottom: 80px;
+    color: #FFD700;
+}
+
+.talkback-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    width: 90%;
+    max-width: 600px;
+}
+
+.talkback-btn {
+    background-color: #000000;
+    color: #FFD700;
+    border: 6px solid #FFD700;
+    border-radius: 20px;
+    padding: 50px;
+    font-size: 56px;
+    font-weight: bold;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.3s ease;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.talkback-btn:hover, .talkback-btn:focus {
+    background-color: #1a1a1a;
+    transform: scale(1.02);
+    outline: 4px solid #FFD700;
+}
+
+.talkback-answer {
+    display: block;
+}
+
+/* Initial State - Tap to Capture */
+#initial-state {
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+    cursor: pointer;
+}
+
+#initial-state:active {
+    background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+}
+
+.tap-text {
+    font-size: 72px;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 
+        0 0 20px #FFD700,
+        0 0 40px #FFD700,
+        4px 4px 8px rgba(0, 0, 0, 0.8);
+    text-align: center;
+    letter-spacing: 0.1em;
+    user-select: none;
+    pointer-events: none;
+}
+
+.large-button {
+    width: 90%;
+    max-width: 600px;
+    height: 200px;
+    background-color: #000000;
+    color: #FFD700;
+    border: 6px solid #FFD700;
+    border-radius: 20px;
+    font-size: 48px;
+    font-weight: bold;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.3s ease;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.large-button:hover, .large-button:focus {
+    background-color: #1a1a1a;
+    transform: scale(1.02);
+    outline: 4px solid #FFD700;
+}
+
+.large-button:active {
+    transform: scale(0.98);
+}
+
+.large-button.secondary {
+    background-color: #000000;
+    color: #FFD700;
+    border-color: #FFD700;
+}
+
+.large-button.secondary:hover, .large-button.secondary:focus {
+    background-color: #1a1a1a;
+}
+
+/* Camera Preview State */
+#camera-state {
+    position: relative;
+    padding: 0;
+    background-color: #000000;
+}
+
+#video-preview {
+    width: 100%;
+    height: 100vh;
+    object-fit: contain;
+    background-color: #000000;
+}
+
+.marker-found-indicator {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 80px;
+    color: #FFD700;
+    text-shadow: 0 0 20px #FFD700;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.marker-found-indicator.visible {
+    opacity: 1;
+}
+
+.status-text {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 2px 2px 4px #000000;
+}
+
+/* Processing State */
+#processing-state {
+    align-items: center;
+    justify-content: center;
+    background-color: #000000;
+}
+
+.processing-content {
+    text-align: center;
+}
+
+#processing-state h2 {
+    font-size: 56px;
+    margin-bottom: 40px;
+    color: #FFD700;
+}
+
+.processing-indicator {
+    font-size: 120px;
+    color: #FFD700;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/* Results State */
+#results-state {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.results-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 4px solid #FFD700;
+}
+
+.results-header h2 {
+    font-size: 48px;
+    color: #FFD700;
+}
+
+#results-content {
+    background-color: #000000;
+    border: 2px solid #FFD700;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    min-height: 300px;
+}
+
+.sentence {
+    display: block;
+    font-size: 36px;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #000000;
+    border-radius: 10px;
+    border-left: 6px solid #FFD700;
+    color: #FFD700;
+    text-align: left;
+}
+
+/* Error State */
+#error-state {
+    align-items: center;
+    justify-content: center;
+}
+
+.error-content {
+    text-align: center;
+}
+
+#error-state h2 {
+    font-size: 56px;
+    color: #FFD700;
+    margin-bottom: 30px;
+}
+
+#error-message {
+    font-size: 40px;
+    margin-bottom: 40px;
+    color: #FFD700;
+}
+
+/* Accessibility - Screen Reader Only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Accessibility - Skip Link */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    z-index: 999;
+}
+
+.skip-link:focus {
+    left: 50%;
+    top: 20px;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background-color: #000000;
+    color: #FFD700;
+    border: 2px solid #FFD700;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    body {
+        font-size: 28px;
+    }
+
+    #language-title {
+        font-size: 40px;
+    }
+
+    #talkback-title {
+        font-size: 48px;
+        margin-bottom: 60px;
+    }
+
+    .talkback-btn {
+        font-size: 48px;
+        padding: 40px;
+        min-height: 160px;
+    }
+
+    .language-btn {
+        font-size: 40px;
+        padding: 30px;
+        min-height: 130px;
+    }
+
+    .flag {
+        font-size: 60px;
+    }
+
+    .tap-text {
+        font-size: 56px;
+    }
+
+    .large-button {
+        font-size: 40px;
+        height: 180px;
+    }
+
+    #processing-state h2 {
+        font-size: 48px;
+    }
+
+    .sentence {
+        font-size: 32px;
+    }
+
+    .results-header h2 {
+        font-size: 40px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    body {
+        font-size: 24px;
+    }
+
+    .tap-text {
+        font-size: 42px;
+    }
+
+    .large-button {
+        font-size: 36px;
+        height: 160px;
+        padding: 15px;
+    }
+
+    #processing-state h2 {
+        font-size: 40px;
+    }
+
+    .sentence {
+        font-size: 28px;
+        padding: 12px;
+    }
+}
+
+/* High Contrast Mode Enhancement */
+@media (prefers-contrast: high) {
+    .large-button {
+        border-width: 8px;
+    }
+    
+    .sentence {
+        border-left-width: 8px;
+    }
+}
+
