@@ -6,4 +6,5 @@ python-dotenv==1.0.0
 numpy
 pillow
 eventlet==0.35.2
+gunicorn==21.2.0
 
