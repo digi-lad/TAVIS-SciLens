@@ -17,7 +17,7 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # Initialize Gemini
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-model = genai.GenerativeModel('gemini-2.0-flash-exp')
+model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
 # ArUco detector setup
 ARUCO_DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
