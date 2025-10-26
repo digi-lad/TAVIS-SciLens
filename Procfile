@@ -1,2 +1,2 @@
-web: python -c "from app import app, socketio; import os; port = int(os.environ.get('PORT', 5000)); socketio.run(app, host='0.0.0.0', port=port, debug=False, allow_unsafe_werkzeug=True)"
+web: python -c "from app import app, socketio; import waitress; import os; port = int(os.environ.get('PORT', 5000)); waitress.serve(app, host='0.0.0.0', port=port, threads=8)"
 
