@@ -27,8 +27,6 @@ const translations = {
         cameraError: 'Không thể truy cập camera. Vui lòng cho phép truy cập camera.',
         serverError: 'Mất kết nối với máy chủ. Vui lòng thử lại.',
         errorPrefix: 'Lỗi kỹ thuật: ',
-        markerDetected: 'Đã phát hiện điểm đánh dấu',
-        positioningMarker: 'Đang định vị điểm đánh dấu',
         cameraScreen: 'Giao diện camera',
         cameraPreview: 'Xem trước camera',
         imageCaptured: 'Ảnh đã được chụp thành công',
@@ -47,8 +45,6 @@ const translations = {
         cameraError: 'Cannot access camera. Please allow camera access.',
         serverError: 'Connection lost to server. Please try again.',
         errorPrefix: 'Technical error: ',
-        markerDetected: 'Marker detected',
-        positioningMarker: 'Positioning marker',
         cameraScreen: 'Camera view',
         cameraPreview: 'Camera preview',
         imageCaptured: 'Image captured successfully',
@@ -67,8 +63,6 @@ const translations = {
         cameraError: '无法访问相机。请允许相机访问。',
         serverError: '与服务器断开连接。请重试。',
         errorPrefix: '技术错误：',
-        markerDetected: '已检测到标记',
-        positioningMarker: '正在定位标记',
         cameraScreen: '相机界面',
         cameraPreview: '相机预览',
         imageCaptured: '图像已成功捕获',
@@ -87,8 +81,6 @@ const translations = {
         cameraError: 'कैमरा तक नहीं पहुंच सकते। कृपया कैमरा एक्सेस की अनुमति दें।',
         serverError: 'सर्वर से कनेक्शन टूट गया। कृपया पुनः प्रयास करें।',
         errorPrefix: 'तकनीकी त्रुटि: ',
-        markerDetected: 'मार्कर का पता चला',
-        positioningMarker: 'मार्कर को पोजिशन करना',
         cameraScreen: 'कैमरा दृश्य',
         cameraPreview: 'कैमरा पूर्वावलोकन',
         imageCaptured: 'छवि सफलतापूर्वक कैप्चर की गई',
@@ -107,8 +99,6 @@ const translations = {
         cameraError: 'No se puede acceder a la cámara. Por favor permita el acceso a la cámara.',
         serverError: 'Conexión perdida con el servidor. Por favor intente de nuevo.',
         errorPrefix: 'Error técnico: ',
-        markerDetected: 'Marcador detectado',
-        positioningMarker: 'Posicionando marcador',
         cameraScreen: 'Vista de cámara',
         cameraPreview: 'Vista previa de cámara',
         imageCaptured: 'Imagen capturada exitosamente',
@@ -338,18 +328,6 @@ function updateLanguage() {
 
 function setupSocketListeners() {
     socket.on('capture_success', (data) => {
-        const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
-        const t = translations[currentLanguage];
-        
-        // Announce to TalkBack users
-        if (usesTalkback) {
-            const statusText = document.getElementById('status-text');
-            if (statusText) {
-                statusText.textContent = t.markerDetected || 'Marker detected';
-                statusText.setAttribute('aria-live', 'assertive');
-            }
-        }
-        
         handleCaptureSuccess(data);
     });
     
@@ -359,17 +337,6 @@ function setupSocketListeners() {
     });
     
     socket.on('markers_not_found', () => {
-        const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
-        const t = translations[currentLanguage];
-        
-        // Announce to TalkBack users about positioning
-        if (usesTalkback) {
-            const statusText = document.getElementById('status-text');
-            if (statusText) {
-                statusText.textContent = t.positioningMarker || 'Positioning marker';
-                statusText.setAttribute('aria-live', 'polite');
-            }
-        }
         // Will continue trying automatically
     });
     

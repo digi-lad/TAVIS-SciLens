@@ -11,28 +11,49 @@ body {
     color: #FFD700;
     font-size: 32px;
     line-height: 1.5;
-    overflow-x: hidden;
-    min-height: 100vh;
+    overflow: hidden;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+#app {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* Screen Management */
 .screen {
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
     padding: 20px;
+    z-index: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .screen.active {
     display: flex;
     flex-direction: column;
+    z-index: 2;
+    /* Don't constrain height - let content grow and scroll */
+    min-height: 100vh;
 }
 
 /* Language Selection Screen */
 #language-selection {
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+    padding-top: 40px;
+    padding-bottom: 40px;
 }
 
 #language-title {
@@ -233,18 +254,6 @@ body {
     opacity: 1;
 }
 
-.status-text {
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    font-size: 36px;
-    font-weight: bold;
-    color: #FFD700;
-    text-shadow: 2px 2px 4px #000000;
-}
-
 /* Processing State */
 #processing-state {
     align-items: center;
@@ -254,6 +263,9 @@ body {
 
 .processing-content {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #processing-state h2 {
@@ -282,6 +294,12 @@ body {
     max-width: 900px;
     margin: 0 auto;
     padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    /* Allow it to grow naturally with content */
 }
 
 .results-header {
@@ -303,6 +321,12 @@ body {
     padding: 30px;
     margin-bottom: 30px;
     min-height: 300px;
+    height: auto;
+    width: 100%;
+    /* Ensure it expands properly in flex container */
+    flex: 0 0 auto; /* Don't shrink or grow flex-wise, use content size */
+    overflow: visible; /* Ensure content isn't clipped */
+    box-sizing: border-box; /* Include padding/border in width calculation */
 }
 
 .sentence {
@@ -316,6 +340,8 @@ body {
     border-left: 6px solid #FFD700;
     color: #FFD700;
     text-align: left;
+    width: 100%; /* Ensure sentences use full width of container */
+    box-sizing: border-box; /* Include padding/border in width */
 }
 
 /* Error State */
@@ -326,6 +352,9 @@ body {
 
 .error-content {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #error-state h2 {
