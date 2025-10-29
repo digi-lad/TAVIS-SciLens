@@ -26,7 +26,13 @@ const translations = {
         error: 'LỖI',
         cameraError: 'Không thể truy cập camera. Vui lòng cho phép truy cập camera.',
         serverError: 'Mất kết nối với máy chủ. Vui lòng thử lại.',
-        errorPrefix: 'Lỗi kỹ thuật: '
+        errorPrefix: 'Lỗi kỹ thuật: ',
+        markerDetected: 'Đã phát hiện điểm đánh dấu',
+        positioningMarker: 'Đang định vị điểm đánh dấu',
+        cameraScreen: 'Giao diện camera',
+        cameraPreview: 'Xem trước camera',
+        imageCaptured: 'Ảnh đã được chụp thành công',
+        resultsReady: 'Kết quả đã sẵn sàng'
     },
     en: {
         talkbackQuestion: 'DO YOU USE TALKBACK?',
@@ -40,7 +46,13 @@ const translations = {
         error: 'ERROR',
         cameraError: 'Cannot access camera. Please allow camera access.',
         serverError: 'Connection lost to server. Please try again.',
-        errorPrefix: 'Technical error: '
+        errorPrefix: 'Technical error: ',
+        markerDetected: 'Marker detected',
+        positioningMarker: 'Positioning marker',
+        cameraScreen: 'Camera view',
+        cameraPreview: 'Camera preview',
+        imageCaptured: 'Image captured successfully',
+        resultsReady: 'Results ready'
     },
     zh: {
         talkbackQuestion: '您使用TALKBACK吗？',
@@ -54,7 +66,13 @@ const translations = {
         error: '错误',
         cameraError: '无法访问相机。请允许相机访问。',
         serverError: '与服务器断开连接。请重试。',
-        errorPrefix: '技术错误：'
+        errorPrefix: '技术错误：',
+        markerDetected: '已检测到标记',
+        positioningMarker: '正在定位标记',
+        cameraScreen: '相机界面',
+        cameraPreview: '相机预览',
+        imageCaptured: '图像已成功捕获',
+        resultsReady: '结果已准备就绪'
     },
     hi: {
         talkbackQuestion: 'क्या आप TALKBACK का उपयोग करते हैं?',
@@ -68,7 +86,13 @@ const translations = {
         error: 'त्रुटि',
         cameraError: 'कैमरा तक नहीं पहुंच सकते। कृपया कैमरा एक्सेस की अनुमति दें।',
         serverError: 'सर्वर से कनेक्शन टूट गया। कृपया पुनः प्रयास करें।',
-        errorPrefix: 'तकनीकी त्रुटि: '
+        errorPrefix: 'तकनीकी त्रुटि: ',
+        markerDetected: 'मार्कर का पता चला',
+        positioningMarker: 'मार्कर को पोजिशन करना',
+        cameraScreen: 'कैमरा दृश्य',
+        cameraPreview: 'कैमरा पूर्वावलोकन',
+        imageCaptured: 'छवि सफलतापूर्वक कैप्चर की गई',
+        resultsReady: 'परिणाम तैयार हैं'
     },
     es: {
         talkbackQuestion: '¿USA TALKBACK?',
@@ -82,7 +106,13 @@ const translations = {
         error: 'ERROR',
         cameraError: 'No se puede acceder a la cámara. Por favor permita el acceso a la cámara.',
         serverError: 'Conexión perdida con el servidor. Por favor intente de nuevo.',
-        errorPrefix: 'Error técnico: '
+        errorPrefix: 'Error técnico: ',
+        markerDetected: 'Marcador detectado',
+        positioningMarker: 'Posicionando marcador',
+        cameraScreen: 'Vista de cámara',
+        cameraPreview: 'Vista previa de cámara',
+        imageCaptured: 'Imagen capturada exitosamente',
+        resultsReady: 'Resultados listos'
     }
 };
 
@@ -234,11 +264,22 @@ function wrapKeywords(text) {
 
 function updateLanguage() {
     const t = translations[currentLanguage];
+    const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
     
     // Update talkback question
     document.getElementById('talkback-title').textContent = t.talkbackQuestion;
     document.getElementById('talkback-yes').querySelector('.talkback-answer').textContent = t.talkbackYes;
     document.getElementById('talkback-no').querySelector('.talkback-answer').textContent = t.talkbackNo;
+    
+    // Update talkback button aria-labels
+    const talkbackYesBtn = document.getElementById('talkback-yes');
+    const talkbackNoBtn = document.getElementById('talkback-no');
+    if (talkbackYesBtn) {
+        talkbackYesBtn.setAttribute('aria-label', `${t.talkbackYes}, ${t.talkbackQuestion}`);
+    }
+    if (talkbackNoBtn) {
+        talkbackNoBtn.setAttribute('aria-label', `${t.talkbackNo}, ${t.talkbackQuestion}`);
+    }
     
     // Update initial screen with keyword highlighting
     const tapTextWithKeywords = wrapKeywords(t.tapToCapture);
@@ -246,18 +287,69 @@ function updateLanguage() {
     
     // Update processing screen
     document.querySelector('#processing-state h2').textContent = t.processing;
-    document.getElementById('processing-cancel-btn').textContent = t.cancel;
+    const processingCancelBtn = document.getElementById('processing-cancel-btn');
+    if (processingCancelBtn) {
+        processingCancelBtn.textContent = t.cancel;
+        processingCancelBtn.setAttribute('aria-label', t.cancel);
+    }
     
     // Update results screen
     document.querySelector('.results-header h2').textContent = t.scienceDescription;
     
-    // Update buttons
-    document.getElementById('try-again-btn').textContent = t.tryAgain;
-    document.querySelector('#error-state h2').textContent = t.error;
+    // Update screen aria-labels dynamically
+    const cameraState = document.getElementById('camera-state');
+    if (cameraState) {
+        cameraState.setAttribute('aria-label', t.cameraScreen);
+    }
+    
+    const processingState = document.getElementById('processing-state');
+    if (processingState) {
+        processingState.setAttribute('aria-label', t.processing);
+    }
+    
+    const resultsState = document.getElementById('results-state');
+    if (resultsState) {
+        resultsState.setAttribute('aria-label', t.scienceDescription);
+    }
+    
+    const videoElement = document.getElementById('video-preview');
+    if (videoElement) {
+        videoElement.setAttribute('aria-label', t.cameraPreview);
+    }
+    
+    // Update button aria-labels
+    const tryAgainBtn = document.getElementById('try-again-btn');
+    if (tryAgainBtn) {
+        tryAgainBtn.textContent = t.tryAgain;
+        tryAgainBtn.setAttribute('aria-label', t.tryAgain);
+    }
+    
+    const errorRetryBtn = document.getElementById('error-retry-btn');
+    if (errorRetryBtn) {
+        errorRetryBtn.textContent = t.tryAgain;
+        errorRetryBtn.setAttribute('aria-label', t.tryAgain);
+    }
+    
+    const errorStateH2 = document.querySelector('#error-state h2');
+    if (errorStateH2) {
+        errorStateH2.textContent = t.error;
+    }
 }
 
 function setupSocketListeners() {
     socket.on('capture_success', (data) => {
+        const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
+        const t = translations[currentLanguage];
+        
+        // Announce to TalkBack users
+        if (usesTalkback) {
+            const statusText = document.getElementById('status-text');
+            if (statusText) {
+                statusText.textContent = t.markerDetected || 'Marker detected';
+                statusText.setAttribute('aria-live', 'assertive');
+            }
+        }
+        
         handleCaptureSuccess(data);
     });
     
@@ -267,7 +359,17 @@ function setupSocketListeners() {
     });
     
     socket.on('markers_not_found', () => {
-        console.log('Markers not found yet...');
+        const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
+        const t = translations[currentLanguage];
+        
+        // Announce to TalkBack users about positioning
+        if (usesTalkback) {
+            const statusText = document.getElementById('status-text');
+            if (statusText) {
+                statusText.textContent = t.positioningMarker || 'Positioning marker';
+                statusText.setAttribute('aria-live', 'polite');
+            }
+        }
         // Will continue trying automatically
     });
     
@@ -282,6 +384,22 @@ function showScreen(screenName) {
     Object.values(screens).forEach(screen => {
         screen.classList.remove('active');
     });
+    
+    // Manage video element for TalkBack users
+    const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
+    const videoElement = document.getElementById('video-preview');
+    const t = translations[currentLanguage];
+    
+    if (screenName === 'camera' && videoElement) {
+        // Camera screen is active, update aria attributes
+        if (usesTalkback) {
+            videoElement.setAttribute('aria-label', t.cameraPreview || 'Camera preview');
+            videoElement.setAttribute('aria-hidden', 'false');
+        }
+    } else if (videoElement) {
+        // Camera screen is not active, hide from screen readers
+        videoElement.setAttribute('aria-hidden', 'true');
+    }
     
     // Show target screen
     if (screens[screenName]) {
@@ -626,11 +744,29 @@ function displayResults(sentences) {
     resultsContent.innerHTML = ''; // Clear previous results
     
     const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
+    const t = translations[currentLanguage];
     
     // For TalkBack users, hide the wrapper's ARIA role to avoid duplication
     if (usesTalkback) {
         resultsContent.removeAttribute('role');
         resultsContent.removeAttribute('aria-label');
+        
+        // Add a simple announcement for TalkBack users
+        const announcement = document.createElement('div');
+        announcement.className = 'sr-only';
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.setAttribute('role', 'status');
+        const sentenceCount = sentences.length;
+        // Simple announcement in current language
+        announcement.textContent = `${t.resultsReady || 'Results ready'}. ${sentenceCount} ${sentenceCount === 1 ? 'sentence' : 'sentences'}.`;
+        resultsContent.appendChild(announcement);
+        
+        // Clear announcement after a short delay to avoid repetition
+        setTimeout(() => {
+            if (announcement.parentNode) {
+                announcement.parentNode.removeChild(announcement);
+            }
+        }, 1000);
     }
     
     // Create a sentence element for each sentence
@@ -644,6 +780,7 @@ function displayResults(sentences) {
         // For TalkBack users, add proper ARIA attributes
         if (usesTalkback) {
             sentenceElement.setAttribute('role', 'text');
+            // Don't add aria-label - the textContent is enough, aria-label would be redundant
         } else {
             // For non-TalkBack users with TTS
             sentenceElement.style.cursor = 'pointer';
