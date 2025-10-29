@@ -187,6 +187,27 @@ function selectTalkback(usesTalkback) {
     showScreen('initial');
 }
 
+function wrapKeywords(text) {
+    // Define keywords for each language
+    const keywords = {
+        'vi': 'CHẠM',
+        'en': 'TAP',
+        'zh': '点击',
+        'hi': 'टैप',
+        'es': 'TOCAR'
+    };
+    
+    const keyword = keywords[currentLanguage];
+    
+    if (!keyword || !text.includes(keyword)) {
+        return text;
+    }
+    
+    // Wrap the keyword in a span
+    const regex = new RegExp(`(${keyword})`, 'gi');
+    return text.replace(regex, '<span class="keyword">$1</span>');
+}
+
 function updateLanguage() {
     const t = translations[currentLanguage];
     
@@ -195,8 +216,9 @@ function updateLanguage() {
     document.getElementById('talkback-yes').querySelector('.talkback-answer').textContent = t.talkbackYes;
     document.getElementById('talkback-no').querySelector('.talkback-answer').textContent = t.talkbackNo;
     
-    // Update initial screen
-    document.getElementById('initial-title').textContent = t.tapToCapture;
+    // Update initial screen with keyword highlighting
+    const tapTextWithKeywords = wrapKeywords(t.tapToCapture);
+    document.getElementById('initial-title').innerHTML = tapTextWithKeywords;
     
     // Update processing screen
     document.querySelector('#processing-state h2').textContent = t.processing;

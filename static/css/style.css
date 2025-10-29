@@ -150,16 +150,17 @@ body {
 
 .tap-text {
     font-size: 72px;
-    font-weight: bold;
+    font-weight: 900;
     color: #FFD700;
-    text-shadow: 
-        0 0 20px #FFD700,
-        0 0 40px #FFD700,
-        4px 4px 8px rgba(0, 0, 0, 0.8);
     text-align: center;
     letter-spacing: 0.1em;
     user-select: none;
     pointer-events: none;
+}
+
+.tap-text .keyword {
+    font-size: 96px;
+    font-weight: 900;
 }
 
 .large-button {
