@@ -227,9 +227,9 @@ function wrapKeywords(text) {
         return text;
     }
     
-    // Wrap the keyword in a span
-    const regex = new RegExp(`(${keyword})`, 'gi');
-    return text.replace(regex, '<span class="keyword">$1</span>');
+    // Wrap the keyword in a span and add line break after it
+    const regex = new RegExp(`(${keyword})\\s*`, 'gi');
+    return text.replace(regex, '<span class="keyword">$1</span><br>');
 }
 
 function updateLanguage() {
