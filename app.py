@@ -496,50 +496,75 @@ def handle_disconnect():
 
 @socketio.on('process_frame')
 def handle_frame(data):
-    """Process incoming frame for ArUco detection and blur check."""
+    """Process incoming frame for ArUco detection (TalkBack) or direct capture (non-TalkBack)."""
+    global last_captured_image, last_detection_score
+    
     try:
         # Decode base64 image
         image_data = base64.b64decode(data['frame'].split(',')[1])
         nparr = np.frombuffer(image_data, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
-        # Check for ArUco markers
-        detected, corners, score = detect_aruco_markers(frame)
+        # Get TalkBack flag (default True for backward compatibility)
+        uses_talkback = data.get('talkback', True)
         
-        if detected:
-            # Extract the image region first
-            extracted_image = extract_image(frame, corners)
+        if uses_talkback:
+            # TalkBack mode: Full ArUco detection and processing
+            detected, corners, score = detect_aruco_markers(frame)
             
-            # Check and enhance lighting if needed
-            has_good_lighting, brightness, contrast = check_lighting_quality(extracted_image)
-            if not has_good_lighting:
-                print(f"Poor lighting detected - Brightness: {brightness:.1f}, Contrast: {contrast:.1f}")
-                extracted_image = enhance_image(extracted_image)
-                print("Image enhanced")
-            
-            # Check if extracted image is sharp enough
-            is_sharp = detect_blur(extracted_image)
+            if detected:
+                # Extract the image region first
+                extracted_image = extract_image(frame, corners)
+                
+                # Check and enhance lighting if needed
+                has_good_lighting, brightness, contrast = check_lighting_quality(extracted_image)
+                if not has_good_lighting:
+                    print(f"Poor lighting detected - Brightness: {brightness:.1f}, Contrast: {contrast:.1f}")
+                    extracted_image = enhance_image(extracted_image)
+                    print("Image enhanced")
+                
+                # Check if extracted image is sharp enough
+                is_sharp = detect_blur(extracted_image)
+                
+                if is_sharp:
+                    # Store for debugging
+                    last_captured_image = extracted_image.copy()
+                    last_detection_score = score
+                    print(f"Detection score: {score:.3f}")
+                    
+                    # Also save to file
+                    cv2.imwrite('static/last_captured.jpg', extracted_image)
+                    
+                    # Encode extracted image for saving
+                    _, buffer = cv2.imencode('.jpg', extracted_image)
+                    image_base64 = base64.b64encode(buffer).decode('utf-8')
+                    
+                    emit('capture_success', {'success': True, 'image': image_base64})
+                else:
+                    emit('capture_failed', {'reason': 'blurry'})
+            else:
+                # Markers not found, continue processing
+                pass
+        else:
+            # Non-TalkBack mode: Skip ArUco detection, use image directly
+            # Just perform basic blur check
+            is_sharp = detect_blur(frame)
             
             if is_sharp:
                 # Store for debugging
-                global last_captured_image, last_detection_score
-                last_captured_image = extracted_image.copy()
-                last_detection_score = score
-                print(f"Detection score: {score:.3f}")
+                last_captured_image = frame.copy()
+                last_detection_score = None
                 
-                # Also save to file
-                cv2.imwrite('static/last_captured.jpg', extracted_image)
+                # Save to file
+                cv2.imwrite('static/last_captured.jpg', frame)
                 
-                # Encode extracted image for saving
-                _, buffer = cv2.imencode('.jpg', extracted_image)
+                # Encode original frame
+                _, buffer = cv2.imencode('.jpg', frame)
                 image_base64 = base64.b64encode(buffer).decode('utf-8')
                 
                 emit('capture_success', {'success': True, 'image': image_base64})
             else:
                 emit('capture_failed', {'reason': 'blurry'})
-        else:
-            # Debug: log when markers are not found (only occasionally to avoid spam)
-            pass  # Remove emit to avoid too much logging
             
     except Exception as e:
         print(f"Error processing frame: {e}")

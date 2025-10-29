@@ -10,6 +10,7 @@ let captureInterval = null;
 let processingInterval = null;
 let currentLanguage = 'vi'; // 'vi', 'en', 'zh', 'hi', 'es'
 let isProcessing = false; // Flag to prevent multiple concurrent API calls
+let abortController = null; // To cancel ongoing fetch requests
 
 // Translations
 const translations = {
@@ -109,6 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
     beepSound = document.getElementById('beep-sound');
     processingSound = document.getElementById('processing-sound');
     
+    // Debug: Check if native camera input exists
+    const nativeInput = document.getElementById('native-camera-input');
+    console.log('Native camera input found:', nativeInput !== null);
+    
     setupEventListeners();
     setupSocketListeners();
     
@@ -156,11 +161,24 @@ function setupEventListeners() {
     
     // Processing cancel button
     const processingCancelBtn = document.getElementById('processing-cancel-btn');
-    processingCancelBtn.addEventListener('click', () => {
-        clearInterval(processingInterval);
-        processingInterval = null;
-        isProcessing = false;
-        showScreen('initial');
+    processingCancelBtn.addEventListener('click', (e) => {
+        // Prevent event bubbling and add a small delay check
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Use setTimeout to ensure this happens after any capture event completes
+        setTimeout(() => {
+            // Abort ongoing fetch request if exists
+            if (abortController) {
+                abortController.abort();
+                abortController = null;
+            }
+            
+            clearInterval(processingInterval);
+            processingInterval = null;
+            isProcessing = false;
+            showScreen('initial');
+        }, 50);
     });
     
     // Try again buttons
@@ -169,6 +187,12 @@ function setupEventListeners() {
     
     const errorRetryBtn = document.getElementById('error-retry-btn');
     errorRetryBtn.addEventListener('click', resetToInitial);
+    
+    // Native camera file input handler
+    const nativeCameraInput = document.getElementById('native-camera-input');
+    if (nativeCameraInput) {
+        nativeCameraInput.addEventListener('change', handleNativeCameraCapture);
+    }
 }
 
 function selectLanguage(lang) {
@@ -267,27 +291,73 @@ function showScreen(screenName) {
 }
 
 async function startCamera() {
-    try {
-        showScreen('camera');
-        
-        // Request camera access
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: 'environment', // Use back camera on mobile
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            }
-        });
-        
-        videoElement = document.getElementById('video-preview');
-        videoElement.srcObject = stream;
-        
-        // Start processing frames
-        startFrameProcessing();
-        
-    } catch (error) {
-        console.error('Error accessing camera:', error);
-        showError(translations[currentLanguage].cameraError);
+    // Get TalkBack preference
+    const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
+    
+    if (usesTalkback) {
+        // TalkBack mode: Use video stream with ArUco detection
+        try {
+            showScreen('camera');
+            
+            // Request camera access
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment', // Use back camera on mobile
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            });
+            
+            videoElement = document.getElementById('video-preview');
+            videoElement.srcObject = stream;
+            
+            // Start processing frames
+            startFrameProcessing();
+            
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            showError(translations[currentLanguage].cameraError);
+        }
+    } else {
+        // Non-TalkBack mode: Open camera, wait for tap to capture
+        try {
+            showScreen('camera');
+            
+            // Request camera access
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment', // Use back camera on mobile
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            });
+            
+            videoElement = document.getElementById('video-preview');
+            videoElement.srcObject = stream;
+            
+            // Don't start continuous processing - wait for user tap
+            // Add tap listener to camera screen
+            const cameraScreen = document.getElementById('camera-state');
+            let tapHandler;
+            tapHandler = (e) => {
+                // Prevent event from propagating
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Immediately remove listeners to prevent double-tap
+                cameraScreen.removeEventListener('click', tapHandler);
+                cameraScreen.removeEventListener('touchstart', tapHandler);
+                
+                // Capture photo
+                captureManualPhoto();
+            };
+            cameraScreen.addEventListener('click', tapHandler);
+            cameraScreen.addEventListener('touchstart', tapHandler);
+            
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            showError(translations[currentLanguage].cameraError);
+        }
     }
 }
 
@@ -320,8 +390,111 @@ function captureFrame() {
     // Convert to base64
     const imageData = canvas.toDataURL('image/jpeg', 0.8);
     
-    // Send to server for processing
-    socket.emit('process_frame', { frame: imageData });
+    // Get TalkBack preference
+    const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
+    
+    // Send to server for processing with TalkBack flag
+    socket.emit('process_frame', { frame: imageData, talkback: usesTalkback });
+}
+
+function captureManualPhoto() {
+    // Check if already processing
+    if (isProcessing) {
+        return;
+    }
+    
+    if (!videoElement || videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
+        console.error('Video not ready');
+        return;
+    }
+    
+    // Set processing flag
+    isProcessing = true;
+    
+    // IMPORTANT: Capture frame BEFORE stopping camera
+    // Create canvas to capture current frame
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoElement, 0, 0);
+    
+    // Convert to base64
+    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    const base64Data = imageData.split(',')[1];
+    
+    // Validate we got the data
+    if (!base64Data || base64Data.length === 0) {
+        console.error('Failed to capture image data');
+        isProcessing = false;
+        const t = translations[currentLanguage];
+        showError(t.errorPrefix + 'Failed to capture image.');
+        return;
+    }
+    
+    console.log('Captured image, base64 length:', base64Data.length);
+    
+    // Now stop video stream
+    stopCamera();
+    
+    // Play beep sound
+    beepSound.play().catch(e => console.log('Could not play beep:', e));
+    
+    // Add a small delay before showing processing screen to prevent tap from triggering cancel button
+    // This ensures the tap event has fully completed
+    setTimeout(() => {
+        // Show processing screen
+        showScreen('processing');
+        
+        // Send directly to Gemini for analysis (bypass ArUco detection)
+        analyzeWithGemini(base64Data);
+    }, 100);
+}
+
+function handleNativeCameraCapture(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        // User cancelled
+        return;
+    }
+    
+    // Check if already processing
+    if (isProcessing) {
+        event.target.value = '';
+        return;
+    }
+    
+    // Set processing flag
+    isProcessing = true;
+    
+    // Play beep sound
+    beepSound.play().catch(e => console.log('Could not play beep:', e));
+    
+    // Show processing screen
+    showScreen('processing');
+    
+    // Read file as data URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        // Extract base64 part (after comma)
+        const base64Data = dataUrl.split(',')[1];
+        
+        // Send directly to Gemini for analysis (bypass ArUco detection)
+        analyzeWithGemini(base64Data);
+    };
+    
+    reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+        isProcessing = false;
+        const t = translations[currentLanguage];
+        showError(t.errorPrefix + 'Failed to read image file.');
+    };
+    
+    reader.readAsDataURL(file);
+    
+    // Reset file input
+    event.target.value = '';
 }
 
 function handleCaptureSuccess(data) {
@@ -363,9 +536,17 @@ function handleCaptureSuccess(data) {
 }
 
 async function analyzeWithGemini(imageData) {
+    // Create abort controller for this request
+    abortController = new AbortController();
+    const signal = abortController.signal;
+    
     // Set a timeout for the API call (30 seconds)
     const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout. The server took too long to respond.')), 30000);
+        setTimeout(() => {
+            if (!signal.aborted) {
+                reject(new Error('Request timeout. The server took too long to respond.'));
+            }
+        }, 30000);
     });
     
     try {
@@ -378,12 +559,25 @@ async function analyzeWithGemini(imageData) {
                 body: JSON.stringify({ 
                     image: imageData,
                     language: currentLanguage 
-                })
+                }),
+                signal: signal // Add abort signal
             }),
             timeoutPromise
         ]);
         
+        // Check if request was cancelled
+        if (signal.aborted) {
+            console.log('Request was cancelled');
+            return;
+        }
+        
         const result = await response.json();
+        
+        // Check again if cancelled before processing result
+        if (signal.aborted) {
+            console.log('Request was cancelled before processing result');
+            return;
+        }
         
         if (response.ok && result.sentences) {
             // Stop processing indicator
@@ -392,6 +586,7 @@ async function analyzeWithGemini(imageData) {
             
             // Reset processing flag
             isProcessing = false;
+            abortController = null; // Clear abort controller
             
             // Play completion beep
             beepSound.play().catch(e => console.log('Could not play completion beep:', e));
@@ -403,15 +598,26 @@ async function analyzeWithGemini(imageData) {
         }
         
     } catch (error) {
+        // Check if error is due to abort
+        if (error.name === 'AbortError' || signal.aborted) {
+            console.log('Request was cancelled');
+            abortController = null;
+            return;
+        }
+        
         console.error('Error analyzing image:', error);
         clearInterval(processingInterval);
         processingInterval = null;
         
         // Reset processing flag on error
         isProcessing = false;
+        abortController = null;
         
-        const t = translations[currentLanguage];
-        showError(t.errorPrefix + error.message);
+        // Only show error if not cancelled
+        if (!signal.aborted) {
+            const t = translations[currentLanguage];
+            showError(t.errorPrefix + error.message);
+        }
     }
 }
 
@@ -559,6 +765,12 @@ function showError(message) {
 
 function resetToInitial() {
     stopCamera();
+    
+    // Abort any ongoing fetch requests
+    if (abortController) {
+        abortController.abort();
+        abortController = null;
+    }
     
     // Clear any intervals
     if (captureInterval) clearInterval(captureInterval);
