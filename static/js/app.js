@@ -870,6 +870,9 @@ function showError(message) {
 function resetToInitial() {
     stopCamera();
     
+    // Stop any ongoing speech synthesis
+    speechSynthesis.cancel();
+    
     // Abort any ongoing fetch requests
     if (abortController) {
         abortController.abort();
