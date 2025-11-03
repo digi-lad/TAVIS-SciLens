@@ -328,16 +328,19 @@ function updateLanguage() {
 
 function setupSocketListeners() {
     socket.on('capture_success', (data) => {
+        // Keep locked; handleCaptureSuccess will stop stream and proceed
         handleCaptureSuccess(data);
     });
     
     socket.on('capture_failed', (data) => {
         console.log('Image too blurry, retaking...');
-        // Will continue trying automatically
+        // Unlock to allow next frame attempt
+        isProcessing = false;
     });
     
     socket.on('markers_not_found', () => {
-        // Will continue trying automatically
+        // Unlock to allow next frame attempt
+        isProcessing = false;
     });
     
     socket.on('error', (data) => {
@@ -478,6 +481,9 @@ function captureFrame() {
     // Get TalkBack preference
     const usesTalkback = JSON.parse(localStorage.getItem('talkback') || 'false');
     
+    // Lock: ensure only one in-flight frame at a time
+    isProcessing = true;
+
     // Send to server for processing with TalkBack flag
     socket.emit('process_frame', { frame: imageData, talkback: usesTalkback });
 }
@@ -885,6 +891,9 @@ function resetToInitial() {
     
     // Reset processing flag
     isProcessing = false;
+    
+    // Inform server to allow new captures for this session
+    socket.emit('reset_capture');
     
     showScreen('initial');
 }

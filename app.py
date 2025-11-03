@@ -36,6 +36,9 @@ REQUIRED_MARKER_IDS = [0, 1, 2, 3]
 last_captured_image = None
 last_detection_score = None
 
+# Track active captures per client session to prevent duplicate successes
+active_captures = set()
+
 # System prompt for Gemini (unified, English base)
 SYSTEM_PROMPT = """Context: You are a science teacher with the ability to transform any scientific image (chemistry, physics, biology) into a coherent and easy-to-understand spoken lecture for visually impaired students.
 
@@ -412,6 +415,10 @@ def handle_frame(data):
     global last_captured_image, last_detection_score
     
     try:
+        # Prevent duplicate processing after a successful capture for this client
+        sid = request.sid
+        if sid in active_captures:
+            return
         # Decode base64 image
         image_data = base64.b64decode(data['frame'].split(',')[1])
         nparr = np.frombuffer(image_data, np.uint8)
@@ -451,6 +458,8 @@ def handle_frame(data):
                     _, buffer = cv2.imencode('.jpg', extracted_image)
                     image_base64 = base64.b64encode(buffer).decode('utf-8')
                     
+                    # Mark this session as having an active capture
+                    active_captures.add(sid)
                     emit('capture_success', {'success': True, 'image': image_base64})
                 else:
                     emit('capture_failed', {'reason': 'blurry'})
@@ -474,6 +483,8 @@ def handle_frame(data):
                 _, buffer = cv2.imencode('.jpg', frame)
                 image_base64 = base64.b64encode(buffer).decode('utf-8')
                 
+                # Mark this session as having an active capture
+                active_captures.add(sid)
                 emit('capture_success', {'success': True, 'image': image_base64})
             else:
                 emit('capture_failed', {'reason': 'blurry'})
@@ -484,6 +495,16 @@ def handle_frame(data):
         traceback.print_exc()
         emit('error', {'message': str(e)})
 
+
+@socketio.on('reset_capture')
+def reset_capture():
+    """Allow the client to start a new capture by clearing the guard."""
+    try:
+        sid = request.sid
+        if sid in active_captures:
+            active_captures.discard(sid)
+    except Exception as e:
+        print(f"Error resetting capture state: {e}")
 
 @app.route('/')
 def index():
