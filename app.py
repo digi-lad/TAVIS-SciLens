@@ -13,7 +13,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key')
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', allow_upgrades=False)
 
 # Initialize Gemini
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))

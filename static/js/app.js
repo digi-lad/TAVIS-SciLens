@@ -1,5 +1,5 @@
 // Socket.IO client
-const socket = io();
+const socket = io({ transports: ['polling'], upgrade: false });
 
 // State management
 const app = document.getElementById('app');
