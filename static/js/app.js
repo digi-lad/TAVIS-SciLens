@@ -1,5 +1,5 @@
-// Socket.IO client
-const socket = io({ transports: ['polling'], upgrade: false });
+// Socket.IO client (allow WebSocket upgrade in experimental branch)
+const socket = io();
 
 // State management
 const app = document.getElementById('app');
