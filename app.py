@@ -565,6 +565,7 @@ if __name__ == '__main__':
     debug = os.environ.get('DEBUG', 'False').lower() == 'true'
     socketio.run(app, debug=debug, host='0.0.0.0', port=port)
 else:
-    # For production (gunicorn/other WSGI servers)
-    application = app
+    # For production (ASGI server like uvicorn)
+    from flask_socketio import ASGIApp
+    application = ASGIApp(socketio, app)
 
