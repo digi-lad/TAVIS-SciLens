@@ -58,10 +58,7 @@ Output and Style Requirements (MANDATORY):
 1. Opening: Always begin with the single, concise overview sentence identified in step 1.
 2. Flowing Spoken Language: Do not present the information as a report or a list. Weave your thinking steps into a narrative lecture with a natural, guided flow.
 3. Teacher's Tone: Be confident, certain, and clear. Avoid speculative words like "it seems," "it appears to be," or "perhaps."
-4. Chemical Notation Formatting (Crucial for Screen Readers):
-- Formulas: When writing chemical formulas, spell out subscript numbers linearly. Absolutely DO NOT use subscript formatting. For example: write H₂O as 'H two O', write CH₃COOH as 'C H three C O O H', write Al₂(SO₄)₃ as 'A l two S O four taken three times'.
-- Physical States: Write out the full state name instead of using abbreviations in parentheses. Use 'solid' for (s), 'liquid' for (l), 'gas' for (g), and 'aqueous solution' for (aq). For example: H₂O(l) should be written as 'H two O liquid', NaCl(aq) should be written as 'N a C l aqueous solution'.
-- Decisive Conclusion: End immediately after the explanation is complete. Do not ask open-ended questions or provide conversational summaries."""
+4. Decisive Conclusion: End immediately after the explanation is complete. Do not ask open-ended questions or provide conversational summaries."""
 
 # Language instruction mapping - appended to base prompt
 LANGUAGE_INSTRUCTIONS = {
