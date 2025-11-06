@@ -168,17 +168,13 @@ def calculate_quad_score(corners):
         if not validate_corner_positions(corners):
             return 0.0
         
-        # # Check area (reasonable for a page)
-        # area = cv2.contourArea(corners)
-        # if area < 10000 or area > 10000000:  # Too small or too large
-        #     return 0.0
+        # Check area (reasonable for a page)
+        area = cv2.contourArea(corners)
         
-        # # Check aspect ratio (reasonable for page: ~0.7 to 1.4)
-        # width = np.linalg.norm(corners[1] - corners[0])
-        # height = np.linalg.norm(corners[2] - corners[1])
-        # aspect_ratio = max(width, height) / min(width, height)
-        # if aspect_ratio < 0.5 or aspect_ratio > 2.0:
-        #     return 0.0
+        # Check aspect ratio (reasonable for page: ~0.7 to 1.4)
+        width = np.linalg.norm(corners[1] - corners[0])
+        height = np.linalg.norm(corners[2] - corners[1])
+        aspect_ratio = max(width, height) / min(width, height)
         
         # Check if convex quadrilateral (no self-intersection)
         hull = cv2.convexHull(corners)
